@@ -1,31 +1,32 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
+
 export default function Home() {
-  const exampleProducts = [
-    {
-      id: 1,
-      titulo: "Zapatilla Nike Shox",
-      precio: "$89.990",
-      url: "#",
-      imagen: "/shox.png"
-    },
-    {
-      id: 2,
-      titulo: "Zapatilla Adidas Forum Low",
-      precio: "$75.990",
-      url: "#",
-      imagen: "/forum.png"
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+    async function fetchProductos() {
+      const { data, error } = await supabase.from('productos').select('*');
+      if (error) {
+        console.error('Error al obtener productos:', error);
+      } else {
+        setProductos(data);
+      }
     }
-];
+
+    fetchProductos();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white p-8 font-sans">
-      <header className="mb-6">
+      <header className="flex items-center gap-4 mb-6">
         <img src="/logo.png" alt="Logo Snikah" className="h-10" />
       </header>
 
       <p className="mb-8 text-gray-400">Encuentra los mejores precios en zapatillas urbanas.</p>
-      
-     <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {exampleProducts.map(p => (
+
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {productos.map((p) => (
           <li
             key={p.id}
             className="flex flex-col p-4 rounded-xl bg-[#1E1E1E] hover:bg-[#2c2c2c] transition"
@@ -42,11 +43,6 @@ export default function Home() {
           </li>
         ))}
       </ul>
-
-      <footer className="mt-12 text-gray-500 text-sm">
-        <p>© 2025 Snikah. Todos los derechos reservados.</p>
-        <p>Hecho con ❤️ por tu nombre</p>
-      </footer>
     </div>
   );
 }
