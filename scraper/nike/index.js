@@ -1,6 +1,14 @@
 const puppeteer = require("puppeteer");
 const fs = require("fs");
 
+const GENEROS = [
+  { genero: "hombre", url: "https://www.nike.cl/hombre/zapatillas" },
+  { genero: "mujer", url: "https://www.nike.cl/mujer/zapatillas" },
+  { genero: "niños", url: "https://www.nike.cl/ninos/zapatillas" },
+];
+
+const productosPorPagina = 18;
+
 (async () => {
   const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
@@ -10,63 +18,68 @@ const fs = require("fs");
   );
 
   const productosTotales = [];
-  const productosPorPagina = 18;
-  let pagina = 0;
 
-  try {
-    await page.goto("https://www.nike.cl/zapatillas", {
-      waitUntil: "domcontentloaded",
-      timeout: 0,
-    });
+  for (const { genero, url } of GENEROS) {
+    console.log(`\n🚀 Iniciando scraping para: ${genero.toUpperCase()}`);
+    try {
+      await page.goto(url, { waitUntil: "domcontentloaded", timeout: 0 });
+      let pagina = 0;
 
-    console.log("🚀 Iniciando scraping por páginas...");
+      while (true) {
+        const from = pagina * productosPorPagina;
+        const to = from + productosPorPagina - 1;
+        const apiUrl = buildApiUrl(from, to);
 
-    while (true) {
-      const from = pagina * productosPorPagina;
-      const to = from + productosPorPagina - 1;
+        console.log(`🔎 ${genero}: productos ${from} - ${to}`);
+        const productos = await page.evaluate(async (finalUrl) => {
+          const res = await fetch(finalUrl, {
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+          });
 
-      const url = buildApiUrl(from, to);
+          const json = await res.json();
+          const lista = json?.data?.productSearch?.products ?? [];
 
-      console.log(`🔎 Scrapeando productos ${from} - ${to}`);
+          return lista.map((prod) => {
+            const item = prod.items?.[0];
+            const seller = item?.sellers?.[0];
+            return {
+              nombre: prod.productName,
+              precio: seller?.commertialOffer?.Price ?? null,
+              imagen: item?.images?.[0]?.imageUrl ?? null,
+              link: "https://www.nike.cl/" + prod.linkText + "/p",
+            };
+          });
+        }, apiUrl);
 
-      const productos = await page.evaluate(async (finalUrl) => {
-        const res = await fetch(finalUrl, {
-          headers: {
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-          },
-        });
+        const filtrados = productos
+          .filter((p) => p.precio && p.nombre && p.imagen)
+          .map((p) => ({
+            ...p,
+            genero,
+            marca: "Nike",
+            tienda: "nike",
+          }));
 
-        const json = await res.json();
-        const lista = json?.data?.productSearch?.products ?? [];
+        if (filtrados.length === 0) break;
 
-        return lista.map(prod => {
-          const item = prod.items?.[0];
-          const seller = item?.sellers?.[0];
-          return {
-            nombre: prod.productName,
-            precio: seller?.commertialOffer?.Price ?? null,
-            imagen: item?.images?.[0]?.imageUrl ?? null,
-            link: "https://www.nike.cl/" + prod.linkText + "/p",
-          };
-        });
-      }, url);
-
-      if (productos.length === 0) break;
-
-      productosTotales.push(...productos);
-      pagina++;
+        productosTotales.push(...filtrados);
+        pagina++;
+      }
+    } catch (err) {
+      console.error(`❌ Error en ${genero}:`, err.message);
     }
-
-    console.log(`✅ Total productos capturados: ${productosTotales.length}`);
-    fs.writeFileSync("productos_nike.json", JSON.stringify(productosTotales, null, 2));
-    console.log("📄 Guardado como productos_nike.json");
-
-  } catch (err) {
-    console.error("❌ Error:", err.message);
-  } finally {
-    await browser.close();
   }
+
+  console.log(`\n✅ Total productos capturados: ${productosTotales.length}`);
+  const path = require("path");
+  const outputPath = path.join(__dirname, "productos.json");
+  fs.writeFileSync(outputPath, JSON.stringify(productosTotales, null, 2));
+  console.log("📄 Guardado como nike/productos.json");
+
+  await browser.close();
 })();
 
 function buildApiUrl(from, to) {
@@ -83,16 +96,18 @@ function buildApiUrl(from, to) {
     to,
     selectedFacets: [
       { key: "c", value: "nike" },
-      { key: "c", value: "calzado" }
+      { key: "c", value: "calzado" },
     ],
     operator: "and",
     fuzzy: "0",
     searchState: null,
     facetsBehavior: "Static",
-    withFacets: false
+    withFacets: false,
   };
 
-  const encodedVars = encodeURIComponent(Buffer.from(JSON.stringify(variables)).toString("base64"));
+  const encodedVars = encodeURIComponent(
+    Buffer.from(JSON.stringify(variables)).toString("base64")
+  );
 
   return `https://www.nike.cl/_v/segment/graphql/v1?workspace=master&maxAge=short&appsEtag=remove&domain=store&locale=es-CL&__bindingId=b0a52373-16d4-42d3-96e7-49b585167c9d&operationName=productSearchV3&variables=%7B%7D&extensions=%7B%22persistedQuery%22%3A%7B%22version%22%3A1%2C%22sha256Hash%22%3A%22e48b7999b5713c9ed7d378bea1bd1cf64c81080be71d91e0f0b427f41e858451%22%2C%22sender%22%3A%22vtex.store-resources%400.x%22%2C%22provider%22%3A%22vtex.search-graphql%400.x%22%7D%2C%22variables%22%3A%22${encodedVars}%22%7D`;
 }

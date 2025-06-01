@@ -29,13 +29,14 @@ function detectarMarca(nombre) {
     await page.waitForSelector(".product-item");
 
     const productos = await page.$$eval(".product-item", items =>
-      items.map(item => {
-        const nombre = item.querySelector(".product-item-link")?.innerText?.trim();
-        const precio = item.querySelector(".price")?.innerText?.trim();
-        const imagen = item.querySelector("img")?.src;
-        const link = item.querySelector("a")?.href;
-        return { nombre, precio, imagen, link };
-      })
+        items.map(item => {
+            const nombre = item.querySelector(".product-item-link")?.innerText?.trim();
+            const precioTexto = item.querySelector(".price")?.innerText?.trim();
+            const precio = precioTexto ? parseInt(precioTexto.replace(/\$|\./g, ""), 10) : null;
+            const imagen = item.querySelector("img")?.src;
+            const link = item.querySelector("a")?.href;
+            return { nombre, precio, imagen, link };
+        })
     );
 
     console.log(`🧩 Productos encontrados (${genero}): ${productos.length}`);
