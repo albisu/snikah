@@ -110,7 +110,7 @@ def obtener_productos(genero):
                     "nombre": item.get("productName"),
                     "precio": item.get("priceRange", {}).get("sellingPrice", {}).get("lowPrice"),
                     "imagen": item.get("items", [{}])[0].get("images", [{}])[0].get("imageUrl"),
-                    "url": f'https://www.theline.cl{item.get("linkText")}/p',
+                    "url": f'https://www.theline.cl/{item.get("linkText")}/p',
                     "genero": genero,
                     "marca": item.get("brand")
                 })
