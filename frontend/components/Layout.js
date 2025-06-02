@@ -6,7 +6,7 @@ export default function Layout({ children }) {
     <div className="bg-[#121212] text-white min-h-screen flex flex-col">
       <header className="w-full px-6 py-4 flex justify-between items-center border-b border-[#1E1E1E]">
         <Link href="/">
-          <img src="/logo.png" alt="Snikah logo" className="h-8" />
+          <img src="/logo.png" alt="Snikah logo" className="h-8 w-auto max-w-[160px]" />
         </Link>
         <nav className="space-x-4 text-sm">
           <Link href="/comparador" className="hover:text-[#32CD32]">Comparador</Link>
