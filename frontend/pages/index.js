@@ -6,7 +6,11 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchProductos() {
-      const { data, error } = await supabase.from('productos').select('*');
+      const { data, error } = await supabase
+        .from('productos')
+        .select('*')
+        .order('created_at', { ascending: false });
+
       if (error) {
         console.error('Error al obtener productos:', error);
       } else {
@@ -31,14 +35,17 @@ export default function Home() {
             key={p.id}
             className="flex flex-col p-4 rounded-xl bg-[#1E1E1E] hover:bg-[#2c2c2c] transition"
           >
-            <img
-              src={p.imagen}
-              alt={p.titulo}
-              className="w-full h-48 object-contain mb-4"
-            />
+            <a href={p.link} target="_blank" rel="noopener noreferrer">
+              <img
+                src={p.imagen}
+                alt={p.nombre}
+                className="w-full h-48 object-contain mb-4 bg-transparent brightness-[1.4] contrast-[1.3] drop-shadow-lg"
+                style={{ backgroundColor: 'transparent' }}
+              />
+            </a>
             <div className="mt-auto text-center">
-              <p className="text-base font-semibold">{p.titulo}</p>
-              <p className="text-lime font-semibold">{p.precio}</p>
+              <p className="text-base font-semibold">{p.nombre}</p>
+              <p className="text-lime font-semibold">${p.precio.toLocaleString()}</p>
             </div>
           </li>
         ))}
