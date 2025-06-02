@@ -39,7 +39,7 @@ export default function Home() {
               <img
                 src={p.imagen}
                 alt={p.nombre}
-                className="w-full h-48 object-contain mb-4 bg-transparent brightness-[1.4] contrast-[1.3] drop-shadow-lg"
+                className="w-full h-48 object-contain mb-4 bg-transparent mix-blend-multiply brightness-[1.6] contrast-[1.2] drop-shadow-md"
                 style={{ backgroundColor: 'transparent' }}
               />
             </a>
