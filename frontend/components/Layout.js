@@ -5,17 +5,20 @@ import Image from "next/image";
 export default function Layout({ children }) {
   return (
     <div className="bg-[#121212] text-white min-h-screen flex flex-col">
-      <header className="w-full px-6 py-4 flex justify-between items-center border-b border-[#1E1E1E]">
-        <Link href="/" className="inline-block">
-          <Image
-            src="/logo.png"
-            alt="Snikah logo"
-            width={140}
-            height={32}
-            priority
-          />
-        </Link>
-        <nav className="space-x-4 text-sm">
+      <header className="w-full px-6 py-5 flex justify-between items-center border-b border-[#1E1E1E]">
+        <div className="flex items-center gap-6">
+          <Link href="/">
+            <Image
+              src="/logo.png"
+              alt="Snikah logo"
+              width={160}
+              height={36}
+              priority
+            />
+          </Link>
+        </div>
+
+        <nav className="space-x-6 text-sm">
           <Link href="/comparador" className="hover:text-[#32CD32]">Comparador</Link>
           <Link href="/explorar" className="hover:text-[#32CD32]">Explorar</Link>
         </nav>
